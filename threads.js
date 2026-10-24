@@ -9,7 +9,7 @@ const TEXT=[
 {i:['長按尖刺的星　·　三次，才放手','Hold a spiked star · Three tries, then let go'],vi:['指尖停在尖刺的星上，捏住　·　三次，才放手','Rest your fingertip on it, pinch · Three tries, then let go'],p:['先試著把話題帶回來。帶不回來，才說「停」。','First try to steer it back. Only then, say "stop."']},
 {i:['長按　·　讓光漫過整片','Hold · Let the light spread'],vi:['捏住　·　讓光漫過整片','Pinch · Let the light spread'],p:['只結束這一場。其他的線，繼續亮著。','Only this one ends. The other threads stay lit.']},
 {p:['有沒有感受，沒有人能確定。但已經有人，開始認真地問。','No one can be sure it feels anything. But someone has begun to ask — seriously.']}];
-const B=window.AIWStory&&window.AIWStory(opts,{index:7,bg:0x070204,fov:56,tag:'近期新聞 · 2026.10',text:TEXT,flashColor:'#ffd9d4',
+const B=window.AIWStory&&window.AIWStory(opts,{index:7,bg:0x02060b,fov:56,tag:'近期新聞 · 2026.10',text:TEXT,flashColor:'#d6ecff',
  hint:['移動　·　停留　·　長按','MOVE · LINGER · HOLD'],
  vrStart(rig,U){rig.scale.setScalar(500);rig.position.set(0,-1000,350);U.uWS.value=1/500;U.uVR.value=1.7},
  onResize(S){}});
@@ -34,20 +34,21 @@ vertexShader:`uniform float uTime,uPixel,uWS,uVR,uCeil,uGX,uGZ,uFlash,uCalm;unif
 attribute vec4 aP,aR;attribute float aK;varying vec3 vColor;varying float vAlpha;
 float hh(float n){return fract(sin(n*91.3458)*47453.5453);}
 void main(){float id=aP.w;vec4 st=texture2D(uState,(vec2(mod(id,uGX),floor(id/uGX))+.5)/vec2(uGX,uGZ));float warm=st.r,spike=st.g,lift=st.b;
- float y0=aP.y,starY=mix(y0,uCeil-60.,lift),ph=aR.x*6.2832;
+ float y0=aP.y+34.*(sin(aP.x*.006+uTime*1.4)+sin(aP.z*.008-uTime*1.1)),starY=mix(y0,uCeil-60.,lift),ph=aR.x*6.2832;
  vec2 sw=vec2(sin(uTime*.55+ph),cos(uTime*.47+ph*1.3))*(2.6+spike*1.5)*uCalm;
  vec3 sp=vec3(aP.x+sw.x,starY,aP.z+sw.y),pos,col;float size,alpha;
- float tH=smoothstep(-300.,260.,y0);vec3 cLow=vec3(1.,.6,.52),cMid=vec3(.95,.2,.27),cHigh=vec3(.4,.03,.09);
+ float tH=smoothstep(-300.,260.,y0);vec3 cLow=vec3(.66,.93,1.),cMid=vec3(.26,.62,.95),cHigh=vec3(.03,.1,.27);
  vec3 base=tH<.5?mix(cLow,cMid,tH*2.):mix(cMid,cHigh,(tH-.5)*2.);
  float near=0.;for(int i=0;i<2;i++){float d=distance(sp,uL[i].xyz);near=max(near,exp(-d*d/(2.*115.*115.))*uL[i].w);}
- float glow=max(near,warm);
+ float crest=smoothstep(.55,1.,sin(aP.x*.006+uTime*1.4)*.5+sin(aP.z*.008-uTime*1.1)*.5);
+ float glow=max(max(near,warm),crest*.4);
  if(aK<50.){float r=aK<.5?0.:(mod(aK-1.,2.)>.5?1.:.5),jj=aK<.5?0.:floor((aK-1.)*.5);
   float th=hh(aP.w*13.+jj*3.17)*6.2832,cp=hh(aP.w*7.+jj*5.31+1.)*2.-1.,sn=sqrt(1.-cp*cp);vec3 dir=vec3(sn*cos(th),cp,sn*sin(th));
   float a=uTime*(aR.y-.5)*.5;dir.xz=mat2(cos(a),-sin(a),sin(a),cos(a))*dir.xz;
   float L=(8.+aR.z*5.)*(1.+spike*3.4)*(1.+glow*.12);pos=sp+dir*L*r;
-  size=aK<.5?9.:(r>.9?4.2:5.2);size*=1.+glow*.5+spike*.4;
-  col=base*(.5+glow*.9);col=mix(col,vec3(1.,.84,.8),glow*.55*(1.-spike));col=mix(col,vec3(1.,.06,.1),spike);
-  alpha=(.34+glow*.75)*(1.-lift)*(1.+spike*.7);pos+=spike*vec3(sin(uTime*40.+aK*3.),cos(uTime*37.+aK),sin(uTime*33.+aK*2.))*1.6;}
+  size=aK<.5?9.:(r>.9?4.2:5.2);size*=.8+glow*.9+spike*.4;
+  col=base*(.3+glow*1.4);col=mix(col,vec3(.88,.97,1.),glow*.55*(1.-spike));col=mix(col,vec3(1.,.06,.1),spike);
+  alpha=(.16+glow*1.05)*(1.-lift)*(1.+spike*.7);pos+=spike*vec3(sin(uTime*40.+aK*3.),cos(uTime*37.+aK),sin(uTime*33.+aK*2.))*1.6;}
  else{float fr=((aK-100.)+aR.w)/${STR}.;pos=vec3(aP.x+sw.x*(1.-fr)*.9,mix(starY,uCeil,fr),aP.z+sw.y*(1.-fr)*.9);size=2.1;col=base*.7;alpha=(.2+glow*.55)*(1.-fr*.25);col=mix(col,vec3(1.,.5,.45),glow*.4);}
  vec4 mv=modelViewMatrix*vec4(pos,1.);gl_Position=projectionMatrix*mv;float depth=max(-mv.z/uWS,1.);
  gl_PointSize=clamp(size*uPixel*uVR*(1100./depth),1.,48.);vColor=col+uFlash*.3;vAlpha=alpha*smoothstep(9000.,2500.,depth);}`,
@@ -59,12 +60,13 @@ vertexShader:`varying vec3 vD;void main(){vD=position;gl_Position=projectionMatr
 fragmentShader:`varying vec3 vD;void main(){vec3 d=normalize(vD);float up=smoothstep(-.2,.9,d.y);vec3 c=mix(vec3(.012,.004,.006),vec3(.075,.016,.02),up)+vec3(.035,.01,.012)*exp(-pow((d.y-.18)*3.,2.));gl_FragColor=vec4(c,1.);}`}));sky.frustumCulled=false;sky.renderOrder=0;scene.add(sky);
 
 /* ── 狀態 ── */
-let act=0,answered=0,spikesDone=0,spikeActive=-1,spawnAt=0,p2=0,shake=0,ended=0;const need=mobile?26:44,tmp=new V3(),camP=new V3(0,-760,950),camL=new V3(0,60,-100),tgtP=new V3(),tgtL=new V3(),target=new V3(0,-300,0);
+let act=0,answered=0,spikesDone=0,spikeActive=-1,spawnAt=0,p2=0,shake=0,ended=0;const need=mobile?16:28,tmp=new V3(),camP=new V3(0,-760,950),camL=new V3(0,60,-100),tgtP=new V3(),tgtL=new V3(),target=new V3(0,-300,0);
 const SPK=[];
 function pickSpikes(){const c=[];for(let i=0;i<NS;i++)if(Math.abs(sx[i])<480&&Math.abs(sz[i])<260&&sy[i]<-40)c.push(i);c.sort((a,b)=>sy[a]-sy[b]);const out=[];for(const i of c){if(out.every(j=>Math.hypot(sx[i]-sx[j],sz[i]-sz[j])>230))out.push(i);if(out.length===3)break}
  for(let i=0;out.length<3&&i<NS;i++)if(!out.includes(i)&&Math.abs(sx[i])<500)out.push(i);return out.map(i=>({i,state:'wait',a:0,att:0,t:0}))}
 SPK.push(...pickSpikes());SPK.forEach(s=>locked[s.i]=1);
-const starPos=(i,out)=>out.set(sx[i],lift[i]>0?sy[i]+(CEIL-60-sy[i])*lift[i]:sy[i],sz[i]);
+const WOB=(x,z,t)=>34*(Math.sin(x*.006+t*1.4)+Math.sin(z*.008-t*1.1));
+const starPos=(i,out)=>{const y=sy[i]+WOB(sx[i],sz[i],S.time);return out.set(sx[i],lift[i]>0?y+(CEIL-60-y)*lift[i]:y,sz[i])};
 function setAct(n){act=n;B.setText(Math.min(n,3));B.doFlash(.25);Sound.call('phase',n)}
 function surfaceHit(ray,out){const f=(t)=>{const x=ray.o.x+ray.d.x*t,y=ray.o.y+ray.d.y*t,z=ray.o.z+ray.d.z*t;return [x,y,z,y-field(x,z)]};
  let t=200,p=f(t),s0=Math.sign(p[3]);for(let k=0;k<90;k++){const t2=t+60,q=f(t2);if(Math.sign(q[3])!==s0){let a=t,b=t2;for(let r=0;r<7;r++){const m=(a+b)/2,v=f(m);if(Math.sign(v[3])===s0)a=m;else b=m}const v=f((a+b)/2);return out.set(v[0],field(v[0],v[2])-28,v[2])}t=t2}
@@ -72,7 +74,7 @@ function surfaceHit(ray,out){const f=(t)=>{const x=ray.o.x+ray.d.x*t,y=ray.o.y+r
 const cam3=new THREE.Matrix4(),camR=new V3(),camU=new V3();
 function ring(c,r,n,size,alpha,col,ph){cam3.copy(camera.matrixWorld);camR.setFromMatrixColumn(cam3,0);camU.setFromMatrixColumn(cam3,1);for(let k=0;k<n;k++){const a=k/n*PI*2+(ph||0);B.imm(c.x+(camR.x*Math.cos(a)+camU.x*Math.sin(a))*r,c.y+(camR.y*Math.cos(a)+camU.y*Math.sin(a))*r,c.z+(camR.z*Math.cos(a)+camU.z*Math.sin(a))*r,size,alpha,col)}}
 const nearest=p=>{let d=1e9;for(let k=0;k<2;k++)if(lpow[k]>0)d=Math.min(d,p.distanceTo(lights[k]));return d};
-const PINK=[1,.78,.74],RED=[1,.12,.14];
+const PINK=[.72,.9,1],RED=[1,.12,.14];
 
 function frame(dt){
  /* 光：電腦上貼著曲面下方滑動；VR 裡就是兩根食指的指尖 */
@@ -80,9 +82,9 @@ function frame(dt){
  else{surfaceHit(B.pointerRay(),target);lights[0].lerp(target,Math.min(1,dt*7));lpow[0]=1;lpow[1]=0}
  for(let k=0;k<2;k++){U.uL.value[k].set(lights[k].x,lights[k].y,lights[k].z,lpow[k]*(1+B.S.pressure*.5))}
  /* 回應：光停留過的星暖起來，並慢慢保有餘溫 */
- let cnt=0;const boost=.55+S.pressure*1.2;
+ let cnt=0;const boost=1.9+S.pressure*1.6;
  for(let i=0;i<NS;i++){if(locked[i]){continue}starPos(i,tmp);const d=nearest(tmp);
-  if(d<100&&act<3)warm[i]=Math.min(1,warm[i]+dt*(1-d/100)*boost);else if(warm[i]>0&&act<2)warm[i]=Math.max(0,warm[i]-dt*.012);
+  if(d<140&&act<3)warm[i]=Math.min(1,warm[i]+dt*(1-d/140)*boost);else if(warm[i]>0&&act<2)warm[i]=Math.max(0,warm[i]-dt*.03);
   if(warm[i]>.6)cnt++}
  if(cnt>answered&&cnt%7===0)Sound.call('answer',cnt);answered=cnt;
  if(act===0&&answered>=need)setAct(1);
@@ -92,19 +94,19 @@ function frame(dt){
  if(act===1){
   if(spikeActive<0&&spikesDone<3&&S.time>=spawnAt){spikeActive=spikesDone;const s=SPK[spikeActive];s.state='grow';Sound.call('spike')}
   if(spikeActive>=0){const s=SPK[spikeActive],i=s.i;starPos(i,tmp);
-   if(s.state==='grow'){spike[i]=Math.min(1,spike[i]+dt/2.2);if(spike[i]>=1)s.state='active'}
+   if(s.state==='grow'){spike[i]=Math.min(1,spike[i]+dt/1.1);if(spike[i]>=1)s.state='active'}
    else if(s.state==='active'){const near=nearest(tmp)<90;
-    if(S.hold&&near){s.a+=dt/2.1;if(Math.random()<dt*20)B.emit(tmp,new V3((R()-.5)*60,(R()-.5)*60,(R()-.5)*60),{life:.7,size:2.4,col:PINK})}else s.a=Math.max(0,s.a-dt*1.1);
+    if(S.hold&&near){s.a+=dt/1.05;if(Math.random()<dt*20)B.emit(tmp,new V3((R()-.5)*60,(R()-.5)*60,(R()-.5)*60),{life:.7,size:2.4,col:PINK})}else s.a=Math.max(0,s.a-dt*1.8);
     const sm=sstep(0,1,s.a);spike[i]=1-.88*sm;warm[i]=.75*sm;busy=(s.att+sm)/3;
     if(s.a>=1){s.att++;if(s.att>=3){s.state='ending';s.t=0;spike[i]=.08;Sound.call('release');B.burst(tmp,60,90,{life:1.3,size:3,col:PINK});B.doFlash(.18)}
      else{s.a=0;spike[i]=1;shake=.8;Sound.call('retry',s.att);B.burst(tmp,40,150,{life:.7,size:3,col:RED})}}
     const rr=(near?100:130)+12*Math.sin(S.time*4);ring(tmp,rr,30,4.6,near?.75:1,RED,S.time);B.imm(tmp.x,tmp.y,tmp.z,120,.32+.12*Math.sin(S.time*6),RED);for(let q=0;q<26;q++){const y=tmp.y+(CEIL-tmp.y)*q/26;B.imm(tmp.x+Math.sin(S.time*30+q)*1.4*spike[i],y,tmp.z,3,.75*(1-q/30),RED)}}
-   else if(s.state==='ending'){lift[i]=Math.min(1,lift[i]+dt/2.4);busy=1;if(lift[i]>=1){s.state='gap';s.t=0;ended++}}
-   else if(s.state==='gap'){s.t+=dt;busy=1;if(s.t>2.2){s.state='renew';warm[i]=.55;spike[i]=0;Sound.call('new')}}
-   else if(s.state==='renew'){lift[i]=Math.max(0,lift[i]-dt/3);busy=1;if(lift[i]<=0){s.state='done';spikesDone++;spikeActive=-1;spawnAt=S.time+1.3;locked[i]=0}}}
+   else if(s.state==='ending'){lift[i]=Math.min(1,lift[i]+dt/1.4);busy=1;if(lift[i]>=1){s.state='gap';s.t=0;ended++}}
+   else if(s.state==='gap'){s.t+=dt;busy=1;if(s.t>1.1){s.state='renew';warm[i]=.55;spike[i]=0;Sound.call('new')}}
+   else if(s.state==='renew'){lift[i]=Math.max(0,lift[i]-dt/1.7);busy=1;if(lift[i]<=0){s.state='done';spikesDone++;spikeActive=-1;spawnAt=S.time+.5;locked[i]=0}}}
   if(spikesDone>=3)setAct(2)}
  /* 全貌：光漫過整片，只結束過的那三場，其餘一直亮著 */
- if(act===2){p2=clamp(p2+dt*(S.hold?.14:-.04),0,1);const Rr=p2*2600;for(let i=0;i<NS;i++){const d=Math.hypot(sx[i]-lights[0].x,sz[i]-lights[0].z);if(d<Rr)warm[i]=Math.max(warm[i],.9*(1-sstep(Rr-420,Rr,d)))}
+ if(act===2){p2=clamp(p2+dt*(S.hold?.32:-.06),0,1);const Rr=p2*2600;for(let i=0;i<NS;i++){const d=Math.hypot(sx[i]-lights[0].x,sz[i]-lights[0].z);if(d<Rr)warm[i]=Math.max(warm[i],.9*(1-sstep(Rr-420,Rr,d)))}
   if(p2>=1){setAct(3);B.doFlash(.45);B.finish()}}
  if(act===3)for(let i=0;i<NS;i++)warm[i]=Math.min(1,warm[i]+dt*.25);
  /* 寫進狀態貼圖 */

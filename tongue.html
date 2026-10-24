@@ -18,7 +18,7 @@ button{cursor:pointer}button:hover{border-color:var(--hi)}button.on{background:#
 #log{white-space:pre-wrap;font:12px/1.7 Consolas,monospace;color:#9fb6c7;background:#070d13;border:1px solid var(--line);border-radius:8px;padding:10px;height:170px;overflow:auto}
 code{color:var(--warm)}table{border-collapse:collapse;font-size:13px}td,th{border:1px solid var(--line);padding:4px 10px;text-align:left}
 </style></head><body><main>
-<h1>觸語</h1><small>TONGUE OF TOUCH · 一種只用震動說的語言（原型 v0）</small>
+<p style="margin:0 0 8px"><a href="index.html" style="color:#8bafc9;text-decoration:none">← 返回逃逸 AI</a></p><h1>觸語</h1><small>TONGUE OF TOUCH · 一種只用震動說的語言（原型 v0）</small>
 <p style="margin-top:14px">字母只有六個：<b>短／長 × 弱／中／強</b>。三個字母組成一個詞，第一個字母決定詞的類別。句尾再加一下很輕的「確定度」。終端永遠會翻譯，所有對話都留在下方的紀錄裡──這是一種透明的私語，而不是人類看不到的暗語。</p>
 
 <h2>1 · 組一句話</h2>
@@ -113,5 +113,6 @@ $('#conn').onclick=async()=>{if(!('serial' in navigator)){$('#cs').innerHTML='<s
  try{const p=await navigator.serial.requestPort();await p.open({baudRate:+$('#baud').value});serial={p,w:p.writable.getWriter()};$('#cs').innerHTML='<small style="color:#8f8">已連接</small>';log('終端已連接（'+$('#baud').value+' baud）')}catch(e){$('#cs').innerHTML='<small>連接失敗：'+e.message+'</small>'}};
 $('#env').textContent=(navigator.vibrate?'此裝置支援震動。':'此裝置沒有震動功能（桌面或 iPhone），播放時只會有光與聲音。')+('serial' in navigator?' 可連接序列埠終端。':' 此瀏覽器不能連接終端。');
 drawDict();drawCert();drawSent();drawTable();log('觸語原型啟動。詞表 '+WORDS.length+' 個詞。');
+if(location.protocol==='https:'){const n=document.createElement('p');n.innerHTML='<small>目前是網頁版（https）：瀏覽器不允許連到區網的終端，所以只有手機震動、光與聲音。要連終端請用現場電腦開啟本機檔案。</small>';$('#ip').closest('.row').before(n);['#ip','#tok','#ipt'].forEach(i=>$(i).disabled=true)}
 window.__tongue={WORDS,events,vibArr,serialLine,byCode,glyTxt};
 </script></body></html>

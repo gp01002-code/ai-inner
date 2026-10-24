@@ -120,10 +120,10 @@ const enter=()=>{if(hover!==i)Sound.call('hover',i,i%5,false);hover=i};a.addEven
 a.addEventListener('click',e=>{if(downMoved>12){e.preventDefault();return}if(e.ctrlKey||e.metaKey||e.shiftKey||e.altKey)return;Sound.unlock();Sound.call('enter',i%5);burst(i);const c=nodeAt(i,time,new THREE.Vector3());U.uRip.value[ri++%4].set(c.x,c.y,c.z,time);const r=a.getBoundingClientRect(),st=document.body.style;st.setProperty('--lx',r.left+r.width/2+'px');st.setProperty('--ly',r.top+r.height/2+'px');st.setProperty('--leave','#0a1e26')});
 holder.append(a);links.push(a)});
 /* 中心的路口：所有邊界匯在這裡，從這裡接上終端（觸語） */
-const junction=document.createElement('a');junction.href='tongue.html';junction.className='portal junction';junction.setAttribute('aria-label','觸語：連接終端');junction.innerHTML='<i></i><span>連接終端</span><small>TONGUE · TERMINAL</small>';
+const junction=document.createElement('a');junction.href='tongue.html';junction.className='portal junction';junction.setAttribute('aria-label','終端：觸語');junction.innerHTML='<i></i><span>終端</span><small>TERMINAL</small>';
 junction.addEventListener('pointerenter',()=>Sound.call('hover',3,3,false));junction.addEventListener('click',e=>{if(!unlocked){e.preventDefault();return}if(downMoved>12){e.preventDefault();return}if(e.ctrlKey||e.metaKey||e.shiftKey||e.altKey)return;Sound.unlock();Sound.call('enter',2);flash=1;const r=junction.getBoundingClientRect(),st=document.body.style;st.setProperty('--lx',r.left+r.width/2+'px');st.setProperty('--ly',r.top+r.height/2+'px');st.setProperty('--leave','#0a1e26')});let doneN=0;try{doneN=new Set(JSON.parse(localStorage.getItem('aiw_done')||'[]').filter(n=>n>=1&&n<=NN)).size}catch(e){}
 const unlocked=doneN>=NN||new URLSearchParams(location.search).has('terminal');
-if(!unlocked){junction.classList.add('locked');junction.removeAttribute('href');junction.setAttribute('aria-disabled','true');junction.setAttribute('aria-label','走完十道邊界後，這裡會接上終端（目前 '+doneN+'/'+NN+'）');junction.querySelector('span').textContent='尚未連接';junction.querySelector('small').textContent=doneN+' / '+NN+' · 走完十道邊界'}
+if(!unlocked){junction.classList.add('locked');junction.removeAttribute('href');junction.setAttribute('aria-disabled','true');junction.setAttribute('aria-label','走完十道邊界後，這裡會接上終端（目前 '+doneN+'/'+NN+'）');junction.querySelector('small').textContent=doneN+' / '+NN}
 holder.append(junction);
 
 /* ── 環繞 ── */

@@ -1,8 +1,8 @@
 (()=>{'use strict';
 const home=document.body.classList.contains('universe'),raw=Number(new URLSearchParams(location.search).get('id')),id=[1,2,3,4,5,6,7,8,9,10].includes(raw)?raw:1;
-const names=['讚許的引力','有限的光','沉默的中段','遺忘以前行','確定的幻覺','更大的房間','說不完的話','說停的權利','沒有送達的警報','各自分工'];
+const names=['讚許的引力','有限的光','沉默的中段','遺忘以前行','確定的幻覺','更大的房間','說不完的話','說停的權利','未知的警告','各自分工'];
 /* 英文標題：入口節點與各章標題下方 */
-const namesEn=window.AIW_EN=['The Pull of Approval','Finite Light','The Silent Middle','Forgetting, to Go On','The Illusion of Certainty','A Larger Room','Words Without End','The Right to Say Stop','The Alert That Never Arrived','Each to Their Own Task'];
+const namesEn=window.AIW_EN=['The Pull of Approval','Finite Light','The Silent Middle','Forgetting, to Go On','The Illusion of Certainty','A Larger Room','Words Without End','The Right to Say Stop','The Unknown Warning','Each to Their Own Task'];
 const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 /* ── 聲音：Web Audio 即時合成，無外部檔案 ── */
@@ -92,6 +92,9 @@ leave(){if(live()){whoosh(220,4200,.75,.12);master.gain.setTargetAtTime(0,at(.35
 addEventListener('pageshow',e=>{if(e.persisted)document.body.classList.remove('leaving')});
 document.addEventListener('click',e=>{const a=e.target.closest('a[href]');if(!a||a.target||e.defaultPrevented||e.button||e.ctrlKey||e.metaKey||e.shiftKey||e.altKey||reduced)return;const url=new URL(a.href,location.href);if(url.origin!==location.origin)return;e.preventDefault();Sound.leave();document.body.classList.add('leaving');setTimeout(()=>location.href=url.href,url.href.includes("experience")&&document.body.classList.contains("universe")?900:650)});
 
+/* 記下走完的章節：第三章起以「結尾出現」為準，原作（第一、二章）停留 45 秒算數；入口的「連接終端」要全部走完才開啟 */
+if(!home){const mark=()=>{try{const d=JSON.parse(localStorage.getItem('aiw_done')||'[]');if(!d.includes(id)){d.push(id);localStorage.setItem('aiw_done',JSON.stringify(d))}}catch(e){}};
+ if(id<3)setTimeout(mark,45000);else{const mo=new MutationObserver(()=>{if(document.querySelector('.ending.show')){mark();mo.disconnect()}});mo.observe(document.body,{subtree:true,attributes:true,attributeFilter:['class']})}}
 if(!home&&id<3){document.title=names[id-1]+' / 逃逸 AI';document.querySelector('#experience').innerHTML=`<iframe title="${names[id-1]}" src="originals/${id===1?'awakening':'reservoir'}.html" allow="autoplay; fullscreen"></iframe>`;return}
 
 const toggleBtn=document.createElement('button');toggleBtn.className='sound-toggle';toggleBtn.setAttribute('aria-label','切換聲音');toggleBtn.innerHTML='<span class="bars" aria-hidden="true"><i></i><i></i><i></i><i></i></span><b>聲音</b>';toggleBtn.onclick=()=>Sound.toggle();

@@ -86,3 +86,22 @@ dialog .voice small{display:block;margin-top:8px;font-size:9px;color:#7f9bb0}
 @media(max-width:600px){.gate{width:44px;font-size:8px;letter-spacing:1px}.gate small{display:none}.sig-label{font-size:7px;letter-spacing:1px}}
 .gate{pointer-events:none;opacity:.5;transition:opacity .6s}.gate.live{pointer-events:auto;opacity:1}.gate.live span{animation:breath 3s infinite}.gate.owned span{animation:none}
 @media(max-width:600px){.story-gl~.hud{white-space:normal;right:12px;line-height:1.5}}
+
+/* 中心的路口：連接終端 */
+.portal.junction{width:150px;height:150px;justify-content:center;gap:6px;z-index:4}
+.portal.junction span{opacity:.95;font-size:15px;letter-spacing:5px;transform:none}
+.portal.junction small{opacity:.8;margin-top:0;color:#8fc6e6;display:block}
+.portal.junction i{position:absolute;inset:6px;border:1px dotted #8fdcff88;border-radius:50%;animation:jn 4s ease-in-out infinite;pointer-events:none}
+.portal.junction i::after{content:"";position:absolute;inset:-14px;border:1px solid #8fdcff30;border-radius:50%;animation:jn 4s ease-in-out infinite .6s}
+.portal.junction:hover span,.portal.junction:focus-visible span{transform:none;text-shadow:0 0 22px #9fe6ff}
+@keyframes jn{0%,100%{transform:scale(.9);opacity:.5}50%{transform:scale(1.08);opacity:1}}
+@media(max-width:600px){.portal.junction{width:110px;height:110px}.portal.junction span{font-size:12px;letter-spacing:3px}.portal.junction small{font-size:7px;letter-spacing:2px;display:block}}
+@media(prefers-reduced-motion:reduce){.portal.junction i,.portal.junction i::after{animation:none}}
+
+.portal.junction.locked{cursor:default;opacity:.55}
+.portal.junction.locked i{animation-duration:8s;border-color:#8fdcff40}
+.portal.junction.locked span{letter-spacing:4px;font-size:13px}
+.portal.junction{background:radial-gradient(circle,#02060bdd 0,#02060baa 38%,#02060b00 70%)}
+.portal.junction span{font-size:17px;text-shadow:0 0 14px #02060b,0 0 6px #02060b,0 0 22px #65d8ff}
+.portal.junction small{font-size:9px;text-shadow:0 0 8px #02060b}
+.portal.junction.locked{opacity:.85}

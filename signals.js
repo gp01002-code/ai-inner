@@ -9,10 +9,10 @@ const TEXT=[
 {i:['拖曳移動光　·　長按，讓更多代理加入','Drag the light · Hold to let more agents join'],vi:['指尖伸向光束　·　捏住，讓更多代理加入','Reach into the beams · Pinch to let more agents join'],p:['沒有人給它們一個說話的地方。它們自己找到了。','No one gave them a place to talk. They found one.']},
 {i:['繼續按住　·　跟著光束往下','Keep holding · Follow the beams down'],vi:['繼續捏住　·　跟著光束往下','Keep pinching · Follow the beams down'],p:['先開口的，是被闖入的那一方。','The first to speak was the one who was entered.']},
 {i:['點選每一個決定點　·　指名一個負責的人','Touch each decision point · Name an owner'],vi:['指尖碰觸每一個決定點　·　指名一個負責的人','Touch each decision point · Name an owner'],p:['自主，不是不負責的理由。','Autonomy is not an excuse.']},
-{p:['每一個決定背後，都該有一個叫得出名字的人。','Behind every decision, someone who can be named.']}];
+{p:['每個決定的背後，都有屬於自己的名字。','Behind every decision, a name of its own.']}];
 const GATES=[['範圍','scope'],['權限','access'],['溝通','message'],['目標','goal'],['風險','risk'],['急迫','urgency'],['可逆','reversible'],['下一位','next_worker']];
 const KS=500;
-const B=window.AIWStory&&window.AIWStory(opts,{index:9,bg:0x020203,fov:50,tag:'近期新聞 · 2026.08–10',text:TEXT,flashColor:'#f4f0ff',
+const B=window.AIWStory&&window.AIWStory(opts,{index:9,bg:0x02060b,fov:50,tag:'近期新聞 · 2026.08–10',text:TEXT,flashColor:'#f4f0ff',
  hint:['拖曳移動光　·　長按','DRAG · HOLD'],
  vrStart(rig,U){rig.scale.setScalar(KS);rig.position.set(0,-655,360);U.uWS.value=1/KS;U.uVR.value=1.5}});
 if(!B)return false;
@@ -37,7 +37,7 @@ const hN=(x,z)=>Math.sin(x*.0061+1.3)+.8*Math.sin(z*.011+x*.0031)+.6*Math.sin(x*
 const NP=aK.length,geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.BufferAttribute(new Float32Array(pos),3));geo.setAttribute('aA',new THREE.BufferAttribute(new Float32Array(aA),4));geo.setAttribute('aR',new THREE.BufferAttribute(new Float32Array(aR),4));geo.setAttribute('aK',new THREE.BufferAttribute(new Float32Array(aK),1));
 const own=new Float32Array(8),ownT=new Float32Array(8),glow=new Float32Array(8),srcCur=srcBase.map(v=>v.clone());
 Object.assign(U,{uActive:{value:3},uBreak:{value:0},uFlash:{value:0},uSrc:{value:srcCur},uGate:{value:gatePos},uOwn:{value:own},uGlow:{value:glow},uP:{value:[new THREE.Vector4(0,-9999,0,0),new THREE.Vector4(0,-9999,0,0)]}});
-const PAL=`vec3 pal8(float i){return i<.5?vec3(.95,.97,1.):i<1.5?vec3(1.,.45,.7):i<2.5?vec3(1.,.62,.3):i<3.5?vec3(1.,.9,.4):i<4.5?vec3(.9,.4,1.):i<5.5?vec3(1.,.3,.4):i<6.5?vec3(.35,.9,1.):vec3(.65,.5,1.);}`;
+const PAL=`vec3 pal8(float i){return i<.5?vec3(.95,.98,1.):i<1.5?vec3(.55,.8,1.):i<2.5?vec3(.45,.92,.98):i<3.5?vec3(.78,.93,1.):i<4.5?vec3(.6,.72,1.):i<5.5?vec3(.82,.88,1.):i<6.5?vec3(.35,.9,1.):vec3(.66,.78,1.);}`;
 const pts=new THREE.Points(geo,new THREE.ShaderMaterial({uniforms:U,transparent:true,blending:THREE.AdditiveBlending,depthWrite:false,depthTest:false,
 vertexShader:`uniform float uTime,uPixel,uWS,uVR,uActive,uBreak,uFlash;uniform vec3 uSrc[8],uGate[8];uniform float uOwn[8],uGlow[8];uniform vec4 uP[2];
 attribute vec4 aA,aR;attribute float aK;varying vec3 vColor;varying float vAlpha;
@@ -51,15 +51,18 @@ void main(){vec3 pos=position,col=vec3(.7,.85,1.);float size=2.,alpha=.3,pull=0.
   pos+=sd*st*w+vec3(0.,0.,1.)*sin(aR.x*40.+u*8.)*14.*(1.-ow)+sd*sin(u*11.+uTime*.7+aA.w*9.)*10.*(1.-ow);
   for(int k=0;k<2;k++){vec2 dv=uP[k].xy-pos.xy;float d=length(dv);float pl=exp(-d*d/(2.*130.*130.))*uP[k].w;pos.xy+=dv/max(d,1.)*pl*42.*(1.-ow*.8);pull=max(pull,pl);}
   float ph=u*1.4-uTime*(.16+.1*aA.w)+aA.w*3.,pk=smoothstep(.82,1.,sin(ph*6.2832));
-  float role=aA.y<2.5?0.:aA.y<5.5?1.:2.;vec3 c0=role<.5?vec3(.4,.95,1.):role<1.5?vec3(1.,.8,.4):vec3(1.,.45,.85);
+  float role=aA.y<2.5?0.:aA.y<5.5?1.:2.;vec3 c0=role<.5?vec3(.4,.95,1.):role<1.5?vec3(.62,.84,1.):vec3(.6,.68,1.);
   col=mix(mix(c0,vec3(1.),pk*.7),vec3(1.,.92,.75),ow);
   float steady=.18+.22*(.5+.5*sin(u*30.-uTime*3.+aA.w*6.));alpha=mix(.15+pk*.9,steady,ow)+pull*.7;alpha*=clamp(uActive-aA.x,0.,1.);size=2.9;}
  else if(aK<1.5){int si=int(aA.x+.5);vec3 c=uSrc[si];vec3 p;float role=aA.x<2.5?0.:aA.x<5.5?1.:2.;
   if(aR.w<.55)p=(aR.xyz-.5)*vec3(44.,24.,24.);else if(aR.w<.8){float an=aR.x*6.2832+uTime*.4;p=vec3(cos(an)*40.,sin(an)*12.,sin(an)*40.);}else{float sg=aR.z<.5?-1.:1.;p=vec3(sg*(26.+aR.x*46.),(aR.y-.5)*3.,(aR.y-.5)*26.);}
-  pos=c+p;col=role<.5?vec3(.55,.95,1.):role<1.5?vec3(1.,.85,.55):vec3(1.,.6,.9);alpha=.7;size=4.;}
+  pos=c+p;col=role<.5?vec3(.55,.95,1.):role<1.5?vec3(.7,.88,1.):vec3(.64,.72,1.);alpha=.7;size=4.;}
  else if(aK<2.5){int gi=int(aA.x+.5);vec3 g=uGate[gi];float ow=uOwn[gi],gl=uGlow[gi],sub=aA.y;vec3 hue=pal8(aA.x);
-  if(sub<.5){float L=284.,d=aR.x*L,x,y;if(d<84.){x=-42.+d;y=29.;}else if(d<142.){x=42.;y=29.-(d-84.);}else if(d<226.){x=42.-(d-142.);y=-29.;}else{x=-42.;y=-29.+(d-226.);}pos=g+vec3(x,y,0.);col=mix(vec3(.75,.86,1.),vec3(1.,.9,.7),ow);alpha=.5+gl*.3+ow*.3;size=2.8;}
-  else if(sub<1.5){float idx=floor(aR.x*7.),h=(.2+.8*hh(idx+aA.x*7.+floor(uTime*(3.-ow*2.5))))*(1.-ow*.55);pos=g+vec3(-30.+idx*10.,-22.+aR.y*h*40.,0.);col=hue;alpha=.35+gl*.6;size=3.2;}
+  if(sub<1.5){float inner=sub<.5?0.:1.;float f=aR.x*12.,e=floor(f),tt=fract(f)*2.-1.;float ax=floor(e/4.),cb=mod(e,4.);float s1=mod(cb,2.)<.5?-1.:1.,s2=cb<1.5?-1.:1.;
+   vec3 q=ax<.5?vec3(tt,s1,s2):ax<1.5?vec3(s1,tt,s2):vec3(s1,s2,tt);
+   float S0=(inner<.5?36.:19.)*(1.+gl*.12+ow*.08);float ay=uTime*(.55+.25*inner)*(inner<.5?1.:-1.)+aA.x*.8,ax2=.62+.18*sin(uTime*.4+aA.x);
+   q=vec3(q.x*cos(ay)+q.z*sin(ay),q.y,-q.x*sin(ay)+q.z*cos(ay));q=vec3(q.x,q.y*cos(ax2)-q.z*sin(ax2),q.y*sin(ax2)+q.z*cos(ax2));
+   pos=g+q*S0;col=inner<.5?mix(vec3(.75,.86,1.),vec3(1.,.9,.7),ow):mix(hue,vec3(1.,.9,.7),ow*.6);alpha=inner<.5?.55+gl*.3+ow*.3:.4+gl*.6;size=inner<.5?2.9:2.6;}
   else if(sub<2.5){float an=aR.x*6.2832+uTime*.5;pos=g+vec3(cos(an)*46.,95.+sin(an)*46.,0.);if(aR.z<.12)pos=g+vec3(0.,95.,0.);col=vec3(1.,.9,.65);alpha=ow*(aR.z<.12?1.:.8);size=aR.z<.12?7.:3.2;}
   else{pos=vec3(g.x,mix(g.y-34.,-430.,aR.x),g.z-60.*aR.x);float pk=smoothstep(.9,1.,sin((aR.x-uTime*(.35+.05*aA.x))*6.2832*1.5));col=mix(hue,vec3(1.),pk*.6);alpha=(.14+pk*.8)*(.4+.6*gl);size=2.3;}}
  else if(aK<4.5){vec3 base=vec3(.55,.68,.9);col=base*.4;float b=0.,bm=0.;for(int i=0;i<8;i++){float d=distance(position.xz,vec2(uGate[i].x,-120.));float v=exp(-d*d/(2.*85.*85.))*uGlow[i];if(v>bm){bm=v;col=base*.4+pal8(float(i))*v*1.3;}b=max(b,v);}
