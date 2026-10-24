@@ -1,0 +1,88 @@
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;background:#020308;color:#d5edff;overflow:hidden;font-family:"Microsoft JhengHei",sans-serif}a{color:inherit;text-decoration:none}button{font:inherit;color:inherit;cursor:pointer}button,a{-webkit-tap-highlight-color:transparent}#cosmos{position:fixed;inset:0;width:100%;height:100%;touch-action:none}.whisper{position:fixed;left:5vw;top:5vh;pointer-events:none;z-index:2}.whisper h1{font-family:"PMingLiU",serif;font-weight:400;font-size:28px;letter-spacing:9px;margin:0 0 10px}.whisper>span{font:8px monospace;letter-spacing:4px;color:#6e8ba7}.invitation{position:fixed;bottom:5vh;width:100%;text-align:center;font-size:11px;letter-spacing:6px;color:#7898b6;pointer-events:none;animation:breath 5s infinite}#portals{position:fixed;inset:0}.portal{position:absolute;display:flex;align-items:center;justify-content:flex-end;flex-direction:column;width:170px;height:165px;transform:translate(-50%,-50%);border:0;background:none;cursor:pointer;padding-bottom:0;border-radius:50%;color:#dceeff;text-shadow:0 0 18px #65d8ff;outline-offset:6px}.portal span{font-family:"PMingLiU",serif;font-size:16px;letter-spacing:4px;opacity:.72;transition:opacity .5s,transform .5s}.portal small{font-size:8px;letter-spacing:3px;margin-top:9px;color:#7398b3;opacity:0;transition:opacity .5s}.portal:hover span,.portal:focus-visible span{opacity:1;transform:translateY(-3px)}.portal:hover small,.portal:focus-visible small{opacity:1}.portal:focus-visible{outline:1px dotted #b0eaff}.portal.satellite{width:58px;height:58px}.portal.satellite span,.portal.satellite small{display:none}.quiet-nav{position:fixed;left:25px;right:25px;top:20px;display:flex;justify-content:space-between;z-index:10;pointer-events:none}.quiet-nav>*{pointer-events:auto;border:0;background:none;font-size:12px;letter-spacing:3px;color:#8bafc9;padding:10px;text-shadow:0 0 12px #000}.quiet-nav a{font-size:22px}.quiet-nav>*:hover{color:#fff}#experience,iframe{position:absolute;inset:0;width:100%;height:100%;border:0}.inside .quiet-nav{mix-blend-mode:screen}.scene-title{position:fixed;top:9vh;left:0;width:100%;text-align:center;pointer-events:none;font-family:"PMingLiU",serif;font-size:16px;letter-spacing:7px;color:#a8c9e2;opacity:.7}.gesture{position:fixed;bottom:11vh;left:12px;right:12px;text-align:center;font-size:12px;letter-spacing:4px;color:#b7d9f0;pointer-events:none;line-height:2;transition:opacity 1s;text-shadow:0 0 14px #000}.ending{position:fixed;bottom:4vh;left:0;right:0;display:flex;justify-content:center;gap:35px;z-index:5;opacity:0;pointer-events:none;transition:opacity 2s}.ending.show{opacity:1;pointer-events:auto}.ending button,.ending a{background:none;border:0;padding:12px;color:#9dbbd0;font-size:11px;letter-spacing:3px}.memory-light{position:absolute;width:105px;height:105px;transform:translate(-50%,-50%);border:none;border-radius:50%;background:none;color:transparent;z-index:2}.memory-light:focus-visible{outline:1px dotted #aadfff}.memory-light:after{content:attr(data-word);position:absolute;left:-15px;right:-15px;top:100%;color:#b5d4e8;font-size:11px;letter-spacing:3px;opacity:0;transition:opacity .6s;text-shadow:0 0 10px #000}.memory-light:hover:after,.memory-light:focus-visible:after{opacity:.8}.memory-light:disabled{cursor:default}.pulse-button{position:fixed;left:50%;top:50%;width:45vmin;height:45vmin;transform:translate(-50%,-50%);border:0;border-radius:50%;background:none;color:transparent;touch-action:none}.pulse-button:focus-visible{outline:1px dotted #7ea7c166}dialog{width:min(520px,88vw);max-height:80vh;overflow:auto;background:#050c17ed;border:0;color:#b8cedf;padding:35px;box-shadow:0 0 150px #23699822;line-height:2}dialog::backdrop{background:#000b;backdrop-filter:blur(12px)}dialog h2{font-family:"PMingLiU",serif;font-size:23px;letter-spacing:3px;font-weight:400}dialog p{font-size:12px}dialog small{font-size:9px;color:#718c9f}dialog a{display:block;font-size:11px;margin:15px 0;color:#91d9fc}#close-sources{float:right;background:none;border:0;font-size:24px;color:#afcbdc}.footnote{display:block;margin-top:25px}@keyframes breath{50%{opacity:.35}}@media(max-width:600px){.whisper{top:4vh;left:7vw}.whisper h1{font-size:22px;letter-spacing:6px}.whisper>span{font-size:7px;letter-spacing:2px}.portal{width:130px;height:135px}.portal span{font-size:13px;letter-spacing:2px}.portal small{display:none}.portal.satellite{width:38px;height:38px}.invitation{bottom:4vh;font-size:10px}.quiet-nav{left:10px;right:10px;top:10px}.scene-title{top:10vh;font-size:13px}.gesture{font-size:11px}.memory-light{width:80px;height:80px}}
+.portal{z-index:2}.portal.satellite{z-index:1}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+/* v4 視覺強化 */
+body::before{content:'';position:fixed;inset:0;background:#020308;pointer-events:none;z-index:60;animation:unveil 1.6s ease .1s both}
+body::after{content:'';position:fixed;inset:0;background:radial-gradient(circle at var(--lx,50%) var(--ly,50%),var(--leave,#0c1d33) 0,#020308 70%);pointer-events:none;z-index:61;opacity:0;transition:opacity .6s ease}
+body.leaving::after{opacity:1}
+.whisper h1{text-shadow:0 0 22px #4fc4ff88,0 0 60px #2a6fd044;animation:titleIn 2.4s ease .3s both}
+.whisper>span{animation:fadeIn 2s ease 1.2s both}
+.invitation{text-shadow:0 0 14px #5fd0ff66}
+.portal span{text-shadow:0 0 4px #000,0 0 10px #000,0 0 22px #65d8ff,0 0 40px #3a8be0aa}
+.scene-title{text-shadow:0 0 18px #5fcfff88;animation:titleIn 2.6s ease .4s both}
+.gesture.reveal{animation:noteIn 1.4s ease both}
+.ending button,.ending a{transition:color .4s,text-shadow .4s}
+.ending button:hover,.ending a:hover,.ending button:focus-visible,.ending a:focus-visible{color:#e8f6ff;text-shadow:0 0 16px #6fd6ff}
+dialog{border:1px solid #6fc8ff22;box-shadow:0 0 0 1px #0d2238,0 0 120px #2a7fd033,inset 0 0 80px #12355a33;background:linear-gradient(160deg,#071427f2,#03070ff2)}
+dialog[open]{animation:noteIn .6s ease both}
+.sound-toggle{display:flex;align-items:center;gap:9px;border:0;background:none;color:#8bafc9;font-size:11px;letter-spacing:3px;padding:10px}
+.sound-toggle b{font-weight:400}
+.sound-toggle:hover{color:#fff}
+.sound-toggle:focus-visible{outline:1px dotted #b0eaff}
+.universe>.sound-toggle{position:fixed;top:5vh;right:5vw;z-index:3}
+.quiet-nav .sound-toggle{margin-left:auto;margin-right:8px}
+.bars{display:flex;align-items:flex-end;gap:2px;height:12px}
+.bars i{display:block;width:2px;height:3px;background:currentColor;border-radius:1px;box-shadow:0 0 6px currentColor}
+.sound-toggle[aria-pressed=true] .bars i{animation:eq 1.1s ease-in-out infinite}
+.sound-toggle[aria-pressed=true] .bars i:nth-child(2){animation-delay:-.4s}
+.sound-toggle[aria-pressed=true] .bars i:nth-child(3){animation-delay:-.7s}
+.sound-toggle[aria-pressed=true] .bars i:nth-child(4){animation-delay:-.2s}
+.sound-toggle.waiting{animation:breath 2.4s infinite}
+.sound-toggle.waiting .bars i{animation-duration:2.4s}
+.sound-toggle[aria-pressed=false]{opacity:.55}
+@keyframes unveil{from{opacity:1}to{opacity:0}}
+@keyframes fadeIn{from{opacity:0}}
+@keyframes titleIn{from{opacity:0;letter-spacing:22px;filter:blur(8px)}}
+@keyframes noteIn{from{opacity:0;filter:blur(5px);transform:translateY(8px)}}
+@keyframes eq{0%,100%{height:3px}50%{height:12px}}
+@media(max-width:600px){.universe>.sound-toggle{top:3.5vh;right:4vw}.sound-toggle b{display:none}}
+@media(prefers-reduced-motion:reduce){body::before{display:none}}
+/* v5 WebGL 章節 */
+.gl{position:absolute;inset:0;display:block;width:100%;height:100%;touch-action:none}
+.verse{position:fixed;left:0;right:0;bottom:13vh;text-align:center;pointer-events:none;z-index:4;padding:0 16px}
+.verse .inst{transition:opacity .4s ease;margin-bottom:22px}
+.verse .inst .zh{font:13px "Courier New",monospace;letter-spacing:6px;color:rgba(120,215,255,.78);text-shadow:0 0 12px #000}
+.verse .inst .en{font:10px "Courier New",monospace;letter-spacing:2px;color:rgba(120,215,255,.42);margin-top:6px;text-transform:uppercase}
+.verse .poem{opacity:0;transition:opacity .8s ease,transform .8s ease,filter .8s ease;filter:blur(4px)}
+.verse .poem .zh{font-family:"Noto Serif TC","PMingLiU","MingLiU",serif;font-size:22px;letter-spacing:4px;color:rgba(255,255,255,.95);text-shadow:0 0 15px rgba(0,0,0,.9),0 0 30px rgba(80,170,255,.45)}
+.verse .poem .en{font:italic 13px Georgia,serif;letter-spacing:2px;color:rgba(255,255,255,.6);margin-top:10px;text-shadow:0 0 10px #000}
+.progress{position:fixed;left:0;bottom:0;width:100%;height:2px;background:rgba(255,255,255,.05);z-index:4;transition:opacity 1s}
+.progress i{display:block;height:100%;width:0;background:#6fd6ff;box-shadow:0 0 15px #6fd6ff}
+.flash{position:fixed;inset:0;background:#fff;opacity:0;pointer-events:none;z-index:8}
+@media(max-width:600px){.verse{bottom:12vh}.verse .inst .zh{font-size:11px;letter-spacing:3px}.verse .poem .zh{font-size:17px;letter-spacing:2px}.verse .poem .en{font-size:11px}}
+/* v6 環繞觀看 */
+.gl{cursor:grab}.gl:active{cursor:grabbing}
+.orbit-hint{position:fixed;left:0;right:0;bottom:5.5vh;text-align:center;pointer-events:none;z-index:4;font:11px "Courier New",monospace;letter-spacing:5px;color:rgba(150,210,240,.6);transition:opacity 1.5s;animation:fadeIn 2s ease 1.5s both}
+.orbit-hint span{display:block;margin-top:5px;font-size:8px;letter-spacing:3px;opacity:.6}
+.orbit-hint.gone{opacity:0}
+.vr-button{border:1px solid #6fc8ff55!important;border-radius:3px;padding:6px 12px!important;margin-right:6px;letter-spacing:4px}
+.quiet-nav .vr-button{margin-left:auto}.quiet-nav .vr-button+.sound-toggle{margin-left:0}
+/* v8 立體入口 */
+.home-gl{position:fixed;inset:0;z-index:0}
+.universe>.vr-button{position:fixed;top:5vh;right:calc(5vw + 96px);z-index:3;background:none;color:#8bafc9;font-size:11px}
+
+.pulse-button:focus-visible{outline:none}
+dialog .meaning{color:#9fc4dc;border-left:1px solid #6fc8ff44;padding-left:12px}dialog .meaning b{font-weight:400;color:#cfe8f7;letter-spacing:2px}
+/* 第六章：光本身就是指標 */
+.escape-gl{cursor:grab}.escape-gl:active{cursor:grabbing}
+.no-gl{position:fixed;inset:0;display:grid;place-items:center;margin:0;padding:16px;text-align:center;letter-spacing:3px;color:rgba(170,215,240,.8)}
+/* 第七章 */
+.instr-gl,.instr-gl:active{cursor:crosshair}
+.hud{position:fixed;left:16px;bottom:16px;z-index:4;pointer-events:none;font:10px "Courier New",monospace;letter-spacing:2px;color:rgba(200,210,220,.55);white-space:pre}
+@media(max-width:600px){.hud{font-size:8px;letter-spacing:1px;bottom:10px}}
+.scene-title small{display:block;margin-top:7px;font:italic 10px Georgia,serif;letter-spacing:3px;opacity:.55}
+/* AI 的想法 */
+dialog .voice{margin-top:18px;padding:14px 16px;border-left:1px solid #9fd8ff55;background:#0b1a2a88;color:#d6e6f2}
+dialog .voice small{display:block;margin-top:8px;font-size:9px;color:#7f9bb0}
+.about-button{position:fixed;left:4vw;bottom:4vh;z-index:3;border:0;background:none;color:#8bafc9;font-size:11px;letter-spacing:4px;padding:10px;cursor:pointer}
+.about-button:hover{color:#fff}
+/* v16 近期新聞三章（第八至十章） */
+.story-gl,.story-gl:active{cursor:crosshair}
+.scene-title em{display:block;margin-top:6px;font:normal 9px "Courier New",monospace;letter-spacing:4px;opacity:.5;font-style:normal}
+.gate{position:fixed;transform:translate(-50%,-50%);z-index:3;border:0;background:none;color:#e9f2ff;font:10px "Courier New",monospace;letter-spacing:2px;padding:0;width:96px;height:120px;display:flex;align-items:flex-end;justify-content:center;text-shadow:0 0 8px #000,0 0 14px #000;cursor:pointer}
+.gate span{display:block;opacity:.6;transition:opacity .4s;pointer-events:none}.gate:hover span,.gate:focus-visible span,.gate.owned span{opacity:1}.gate:focus-visible{outline:1px dotted #b0eaff}.gate:disabled{cursor:default}
+.gate small{display:block;font-size:8px;opacity:.7;letter-spacing:1px}
+.sig-label{position:fixed;transform:translate(-50%,-50%);z-index:2;pointer-events:none;font:9px "Courier New",monospace;letter-spacing:3px;color:rgba(190,215,235,.55);white-space:nowrap;text-shadow:0 0 8px #000}
+@media(max-width:600px){.gate{width:44px;font-size:8px;letter-spacing:1px}.gate small{display:none}.sig-label{font-size:7px;letter-spacing:1px}}
+.gate{pointer-events:none;opacity:.5;transition:opacity .6s}.gate.live{pointer-events:auto;opacity:1}.gate.live span{animation:breath 3s infinite}.gate.owned span{animation:none}
+@media(max-width:600px){.story-gl~.hud{white-space:normal;right:12px;line-height:1.5}}
