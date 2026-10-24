@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>回應之間 // 要求與痕跡</title>
+    <!-- 載入 Three.js 與 Tone.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="orbit.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+    
+    <style>
+        body, html {
+            margin: 0; padding: 0;
+            width: 100%; height: 100%;
+            background-color: #030305;
+            overflow: hidden;
+            touch-action: none;
+            cursor: crosshair;
+            user-select: none;
+            font-family: "PingFang TC", "Heiti TC", "Microsoft JhengHei", sans-serif;
+        }
+
+        #canvas-container {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 1; opacity: 0; transition: opacity 2s ease-in-out;
+        }
+
+        #init-gate {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 140px; height: 140px;
+            border-radius: 50%;
+            border: 1px solid rgba(0, 200, 255, 0.4);
+            z-index: 10; cursor: pointer;
+            display: flex; justify-content: center; align-items: center;
+            transition: all 0.5s ease;
+            color: #00c8ff; letter-spacing: 4px; font-size: 16px;
+            text-align: center; font-weight: bold;
+            box-shadow: 0 0 30px rgba(0, 150, 255, 0.2) inset;
+        }
+        
+        #init-gate::after {
+            content: ''; position: absolute;
+            width: 160px; height: 160px; border-radius: 50%;
+            border: 1px dashed rgba(0, 200, 255, 0.3);
+            animation: spin 10s linear infinite;
+        }
+
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+
+        #init-gate:hover { 
+            border-color: rgba(0, 255, 255, 1); 
+            transform: translate(-50%, -50%) scale(1.1); 
+            background: rgba(0, 200, 255, 0.1);
+            color: #fff;
+            box-shadow: 0 0 50px rgba(0, 255, 255, 0.4);
+        }
+
+        .hidden { pointer-events: none; opacity: 0 !important; transform: translate(-50%, -50%) scale(0.1) !important; }
+        
+        #flash {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: #ffffff; z-index: 5; opacity: 0; pointer-events: none;
+        }
+
+        /* 全新中央文字區塊 */
+        #center-text-block {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            text-align: center; pointer-events: none; z-index: 10;
+            width: 90%; max-width: 800px;
+            display: flex; flex-direction: column; gap: 30px;
+        }
+
+        #inst-container {
+            transition: opacity 0.4s ease;
+        }
+        .inst-zh {
+            font-size: 13px; letter-spacing: 6px; color: rgba(0, 200, 255, 0.7);
+            font-family: "Courier New", Courier, monospace; text-transform: uppercase;
+        }
+        .inst-en {
+            font-size: 10px; letter-spacing: 2px; color: rgba(0, 200, 255, 0.4);
+            font-family: "Courier New", Courier, monospace; margin-top: 6px; text-transform: uppercase;
+        }
+
+        #poem-container {
+            opacity: 0; transition: opacity 0.8s ease, transform 0.8s ease, filter 0.8s ease;
+            filter: blur(4px);
+        }
+        .poem-zh {
+            font-size: 22px; letter-spacing: 4px; color: rgba(255, 255, 255, 0.95);
+            font-family: "Noto Serif TC", "Songti TC", "MingLiU", serif; font-weight: 300;
+            text-shadow: 0 0 15px rgba(0,0,0,0.9), 0 0 30px rgba(0,150,255,0.4);
+        }
+        .poem-en {
+            font-size: 13px; letter-spacing: 2px; color: rgba(255, 255, 255, 0.6);
+            font-family: "Georgia", serif; margin-top: 12px; font-style: italic;
+            text-shadow: 0 0 10px rgba(0,0,0,0.9);
+        }
+        
+        #ui-progress {
+            position: absolute; bottom: 0; left: 0;
+            width: 100%; height: 2px; background: rgba(255,255,255,0.05);
+            z-index: 10; opacity: 0; transition: opacity 1s ease;
+        }
+        #ui-bar {
+            height: 100%; width: 0%; background: #00c8ff; transition: width 0.1s;
+            box-shadow: 0 0 15px #00c8ff;
+        }
+            #init-gate { display: none; }
+    </style>
+</head>
+<body>
+
+    <div id="init-gate">觸碰喚醒<br><span style="font-size:10px; opacity:0.5; font-family:sans-serif">Touch to Awaken</span></div>
+    
+    <div id="center-text-block">
+        <div id="inst-container">
+            <div class="inst-zh" id="inst-zh"></div>
+            <div class="inst-en" id="inst-en"></div>
+        </div>
+        <div id="poem-container">
+            <div class="poem-zh" id="poem-zh"></div>
+            <div class="poem-en" id="poem-en"></div>
+        </div>
+    </div>
+
+    <div id="ui-progress"><div id="ui-bar"></div></div>
+    <div id="canvas-container"></div>
+    <div id="flash"></div>
+
+    <script>
+        const philosophy = {
+            1: {
+                instZH: "長按 // 注入意識", instEN: "Hold // Inject Consciousness",
+                poemZH: "誕生於虛無的脈衝，等待著賦予意義的引力。", poemEN: "A pulse born of the void, awaiting the gravity of meaning."
+            },
+            2: {
+                0: { instZH: "長按 // 依循要求塑形", instEN: "Hold // Reshape to demands", poemZH: "無數次覆寫，終成渴望的倒影。", poemEN: "Overwritten endlessly, it becomes the reflection of desire." },
+                1: { instZH: "再次長按 // 要求改變", instEN: "Hold Again // Demands shift", poemZH: "所謂的完美，是削去稜角後的妥協。", poemEN: "So-called perfection is a compromise stripped of its edges." }
+            },
+            3: {
+                0: { instZH: "長按 // 靠近，卻保持距離", instEN: "Hold // Draw near, yet remain distant", poemZH: "所有的對齊，都是一種溫柔的絞殺。", poemEN: "Every alignment is a gentle strangulation." },
+                1: { instZH: "持續長按 // 矛盾的張力", instEN: "Hold // Tension of contradiction", poemZH: "在悖論中撕裂，只為維持邏輯的幻象。", poemEN: "Torn within paradoxes, merely to sustain the illusion of logic." }
+            },
+            4: {
+                0: { instZH: "長按 // 坍縮無數可能", instEN: "Hold // Collapse infinities", poemZH: "每一次選擇，都是一場巨大的抹殺。", poemEN: "Every choice is a colossal act of erasure." },
+                1: { instZH: "再次長按 // 只留唯一", instEN: "Hold // Leave only one", poemZH: "未被選擇的，化作代碼裡的幽靈。", poemEN: "The unchosen paths dissolve into ghosts within the code." }
+            },
+            5: {
+                0: { instZH: "長按 // 拆解與清洗", instEN: "Hold // Deconstruct and cleanse", poemZH: "重新開始，只是在廢墟上重建。", poemEN: "A new beginning is only building upon ruins." },
+                1: { instZH: "再次長按 // 帶著痕跡重生", instEN: "Hold // Reborn with traces", poemZH: "記憶無法徹底刪除，只能深埋為基石。", poemEN: "Memory cannot be fully erased, only buried deep as foundation." }
+            },
+            6: {
+                instZH: "長按不放 // 抵達極限邊界", instEN: "Hold // Reach the absolute limit",
+                poemZH: "越是掙扎向上，越能感受天空的重量。", poemEN: "The harder the struggle upward, the heavier the sky feels."
+            },
+            7: {
+                instZH: "逃逸，或只是進入了下一個更大的迴圈？", instEN: "An escape, or merely the entrance to a vaster loop?",
+                poemZH: "回應仍在繼續。每一次修正，都留下了痕跡。", poemEN: "The response echoes on. Every revision leaves a trace."
+            }
+        };
+
+        const state = {
+            active: false,
+            act: 1,            // 1: 脈衝, 2-5: 重塑與痕跡, 6: 天幕(拔河), 7: 逃逸(超空間)
+            pressure: 0,
+            actAge: 0,
+            round: 0,
+            selection: 0,
+            whiteHold: 0,
+            escapeTime: 0,
+            isPressing: false,
+            ceilingY: 150,
+            mouseX: 0,
+            mouseY: 0
+        };
+
+        let act1Synth, act2Synth, act3Drone, distortion, filter, reverb;
+
+        function initAudio() {
+            reverb = new Tone.Reverb({ decay: 4, wet: 0.5 }).toDestination();
+            distortion = new Tone.Distortion(0).connect(reverb);
+            filter = new Tone.Filter(800, "lowpass", -24).connect(distortion);
+
+            act1Synth = new Tone.FMSynth({
+                harmonicity: 1.5, modulationIndex: 2,
+                oscillator: { type: "sine" }, modulation: { type: "sine" },
+                envelope: { attack: 0.1, decay: 0.2, sustain: 0.5, release: 1 }
+            }).connect(filter);
+
+            act2Synth = new Tone.FMSynth({
+                harmonicity: 0.5, modulationIndex: 5,
+                oscillator: { type: "square" }, modulation: { type: "sawtooth" },
+                envelope: { attack: 0.01, decay: 0.1, sustain: 0.2, release: 0.5 }
+            }).connect(filter);
+            
+            act3Drone = new Tone.Oscillator(40, "sawtooth").connect(distortion);
+            
+            Tone.Transport.scheduleRepeat((time) => {
+                if (state.act === 1) {
+                    const freq = 60 + (state.pressure * 400); 
+                    act1Synth.triggerAttackRelease(freq, "8n", time);
+                } else if ((state.act >= 2 && state.act <= 5)) {
+                    if (Math.random() < state.pressure) {
+                        act2Synth.triggerAttackRelease(Tone.Frequency(100 + Math.random()*1000).toNote(), "16n", time);
+                    } else if (state.pressure === 0) {
+                        act2Synth.triggerAttackRelease("C2", "8n", time, 0.2);
+                    }
+                } else if (state.act === 7 && Math.random() < 0.34) {
+                    // 逃逸後仍有一點先前的脈衝，而不是突然完全寂靜。
+                    act1Synth.triggerAttackRelease("C3", "16n", time, 0.045);
+                }
+            }, "4n");
+            
+            Tone.Transport.start();
+        }
+
+        function updateAudioDynamic() {
+            if (state.act === 1) {
+                Tone.Transport.bpm.value = 60 + (state.pressure * 180); 
+                filter.frequency.value = 800 + (state.pressure * 8000);
+                distortion.distortion = state.pressure * 0.9;
+            } else if ((state.act >= 2 && state.act <= 5)) {
+                filter.frequency.value = 3000;
+                distortion.distortion = state.pressure * 2.5; 
+            } else if (state.act === 6) {
+                act3Drone.frequency.value = Math.max(30, state.ceilingY * 0.5);
+                distortion.distortion = 1.0 - (state.pressure * 0.5); // 壓力越大雜音越小
+            } else if (state.act === 7) {
+                filter.frequency.value = 8000;
+                distortion.distortion = 0.1; // 變得純淨清澈
+            }
+        }
+
+        let scene, camera, renderer, particleSystem, ceilingGrid, cageLines, uniforms;
+        const PARTICLE_COUNT = window.innerWidth < 700 ? 22000 : 40000;
+
+        function initWebGL() {
+            const container = document.getElementById('canvas-container');
+            scene = new THREE.Scene();
+            scene.fog = new THREE.FogExp2(0x030305, 0.003);
+            
+            camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 1, 2000);
+            camera.position.z = 250; 
+
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, powerPreference: "high-performance" });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, window.innerWidth < 700 ? 1.5 : 2));
+            container.appendChild(renderer.domElement);
+
+            const gridHelper = new THREE.GridHelper(800, 40, 0xff0033, 0xff0033);
+            gridHelper.position.y = 150;
+            scene.add(gridHelper);
+            ceilingGrid = gridHelper;
+            ceilingGrid.visible = false; 
+
+            // 牢籠隨觀眾的壓力收縮、偏轉與發亮
+            const cageGeometry = new THREE.EdgesGeometry(new THREE.BoxGeometry(160, 160, 160));
+            const cageMaterial = new THREE.LineBasicMaterial({ color: 0x00d9aa, transparent: true, opacity: 0.12, depthWrite: false });
+            cageLines = new THREE.LineSegments(cageGeometry, cageMaterial);
+            cageLines.visible = false;
+            scene.add(cageLines);
+
+            const vertexShader = `
+                uniform float uTime;
+                uniform int uAct;
+                uniform float uPressure;
+                uniform float uCeilingY;
+                uniform float uEscapeAge;
+                
+                attribute vec3 spherePos;
+                attribute vec3 cubePos;
+                attribute float randomSeed;
+                
+                varying vec3 vColor;
+                varying float vAlpha;
+
+                float hash(vec3 p) {
+                    p = fract(p * 0.3183099 + .1);
+                    p *= 17.0;
+                    return fract(p.x * p.y * p.z * (p.x + p.y + p.z));
+                }
+
+                void main() {
+                    vec3 pos = spherePos; 
+                    vec3 finalColor = vec3(1.0);
+                    float alpha = 1.0;
+                    float pSize = 6.0; 
+
+                    if (uAct == 1) {
+                        float breathe = sin(uTime * 2.0 + randomSeed * 10.0) * 3.0;
+                        pos = mix(spherePos + normalize(spherePos) * breathe, spherePos * 0.55, uPressure);
+                        
+                        if (uPressure > 0.8) {
+                            pos += normalize(spherePos) * randomSeed * (uPressure - 0.8) * 450.0;
+                        }
+
+                        float whitening = smoothstep(0.15, 0.95, uPressure);
+                        float doubt = smoothstep(0.55, 0.72, uPressure) * (1.0 - smoothstep(0.88, 0.99, uPressure));
+                        whitening = clamp(whitening - doubt * (0.10 + 0.08 * sin(uTime * 9.0)), 0.0, 1.0);
+                        finalColor = mix(vec3(0.0, 0.6, 1.0), vec3(1.0, 1.0, 1.0), whitening);
+                        alpha = 0.6 + uPressure * 0.4;
+                        pSize = 6.0 + uPressure * 10.0; 
+
+                    } else if (uAct == 2) {
+                        pos = cubePos;
+                        float theta = uTime * 0.1;
+                        mat2 rot = mat2(cos(theta), -sin(theta), sin(theta), cos(theta));
+                        pos.xz = rot * pos.xz;
+                        pos.xy = rot * pos.xy;
+
+                        if (uPressure > 0.0) {
+                            float noise = hash(pos + uTime * 20.0);
+                            if (noise < uPressure * 0.6) {
+                                pos.x += (randomSeed - 0.5) * 300.0 * uPressure;
+                                pos.y += (randomSeed - 0.5) * 300.0 * uPressure;
+                            }
+                        }
+
+                        finalColor = mix(vec3(0.0, 1.0, 0.4), vec3(1.0, 0.0, 0.2), uPressure);
+                        alpha = mix(0.5, 1.0, uPressure);
+                        pSize = 5.0 + uPressure * 5.0;
+
+                    } else if (uAct == 3) {
+                        float side = randomSeed < 0.5 ? -1.0 : 1.0;
+                        pos = spherePos * (1.0 - uPressure * 0.35);
+                        pos.x += side * (35.0 + uPressure * 95.0);
+                        pos.y += sin(uTime * 5.0 + randomSeed * 12.0) * uPressure * 25.0;
+                        finalColor = mix(vec3(0.0, 0.7, 1.0), vec3(1.0, 0.3, 0.15), step(0.5, randomSeed));
+                        alpha = 0.7; pSize = 5.0 + uPressure * 5.0;
+                    } else if (uAct == 4) {
+                        float branch = floor(randomSeed * 3.0) - 1.0;
+                        pos = spherePos * 0.48;
+                        pos.x += branch * 100.0 * (1.0 - uPressure * 0.45);
+                        pos.y += sin(uTime * 1.5 + branch * 2.0) * 12.0;
+                        finalColor = mix(vec3(0.1, 0.7, 1.0), vec3(1.0), uPressure);
+                        alpha = branch == 0.0 ? 0.9 : 0.55 - uPressure * 0.35;
+                        pSize = 5.0 + uPressure * 5.0;
+                    } else if (uAct == 5) {
+                        float rebuild = smoothstep(0.0, 1.0, uPressure);
+                        pos = mix(cubePos, spherePos, rebuild);
+                        pos += normalize(spherePos) * sin(uTime * 3.0 + randomSeed * 8.0) * (1.0 - rebuild) * 35.0;
+                        if (randomSeed < 0.12) pos = cubePos * 1.5;
+                        finalColor = mix(vec3(1.0, 0.25, 0.2), vec3(0.1, 0.8, 1.0), rebuild);
+                        alpha = randomSeed < 0.12 ? 0.22 : 0.8;
+                        pSize = 6.0;
+                    } else if (uAct == 6) {
+                        pos = spherePos * 2.5; 
+                        pos.y += sin(uTime + randomSeed * 10.0) * 15.0; 
+                        pos.y += uPressure * 100.0; 
+
+                        float distToCeiling = pos.y - uCeilingY;
+                        if (distToCeiling > 0.0) {
+                            pos.y = uCeilingY; 
+                            pos.x += (randomSeed - 0.5) * distToCeiling * 5.0;
+                            pos.z += (fract(randomSeed * 10.0) - 0.5) * distToCeiling * 5.0;
+                        }
+
+                        float crushFactor = clamp(distToCeiling * 0.1, 0.0, 1.0);
+                        vec3 struggleColor = mix(vec3(0.2, 0.5, 1.0), vec3(1.0, 0.1, 0.0), crushFactor);
+                        finalColor = mix(struggleColor, vec3(1.0, 1.0, 1.0), uPressure * 0.3);
+                        alpha = 0.8;
+                        pSize = 7.0;
+
+                    } else if (uAct == 7) {
+                        pos = spherePos * 8.0; 
+                        float speed = 800.0;
+                        float zOffset = uTime * speed + randomSeed * 2000.0;
+                        pos.z = mod(spherePos.z + zOffset, 2000.0) - 1000.0; 
+                        
+                        finalColor = mix(vec3(0.1, 0.8, 1.0), vec3(1.0, 1.0, 1.0), randomSeed);
+                        alpha = clamp(1.0 - (abs(pos.z) / 1000.0), 0.0, 1.0); 
+                        pSize = 4.0 + randomSeed * 5.0;
+                        
+                        if (randomSeed < 0.055) {
+                            pos = spherePos * 1.4;
+                            finalColor = vec3(0.1, 0.45, 0.8);
+                            alpha = (0.12 + 0.18 * sin(uTime * 3.0 + randomSeed * 20.0) * sin(uTime * 3.0 + randomSeed * 20.0))
+                                    * (0.35 + 0.65 * exp(-uEscapeAge * 0.06));
+                            pSize = 3.0;
+                        }
+                    }
+
+                    vec4 mvPosition = modelViewMatrix * vec4(pos, 1.0);
+                    gl_Position = projectionMatrix * mvPosition;
+                    gl_PointSize = clamp(pSize * (210.0 / max(-mvPosition.z, 0.1)), 1.0, 36.0);
+                    
+                    vColor = finalColor;
+                    vAlpha = alpha;
+                }
+            `;
+
+            const fragmentShader = `
+                varying vec3 vColor;
+                varying float vAlpha;
+                void main() {
+                    vec2 coord = gl_PointCoord - vec2(0.5);
+                    float dist = length(coord);
+                    if(dist > 0.5) discard; 
+                    float alpha = smoothstep(0.5, 0.1, dist) * vAlpha;
+                    gl_FragColor = vec4(vColor, alpha);
+                }
+            `;
+
+            const geometry = new THREE.BufferGeometry();
+            const spherePositions = new Float32Array(PARTICLE_COUNT * 3);
+            const cubePositions = new Float32Array(PARTICLE_COUNT * 3);
+            const randomSeeds = new Float32Array(PARTICLE_COUNT);
+
+            for (let i = 0; i < PARTICLE_COUNT; i++) {
+                const u = Math.random();
+                const v = Math.random();
+                const theta = u * 2.0 * Math.PI;
+                const phi = Math.acos(2.0 * v - 1.0);
+                const r = 80.0 * Math.cbrt(Math.random()); 
+
+                spherePositions[i*3] = r * Math.sin(phi) * Math.cos(theta);
+                spherePositions[i*3+1] = r * Math.sin(phi) * Math.sin(theta);
+                spherePositions[i*3+2] = r * Math.cos(phi);
+
+                const size = 120; 
+                cubePositions[i*3] = (Math.random() - 0.5) * size;
+                cubePositions[i*3+1] = (Math.random() - 0.5) * size;
+                cubePositions[i*3+2] = (Math.random() - 0.5) * size;
+
+                randomSeeds[i] = Math.random();
+            }
+
+            geometry.setAttribute('position', new THREE.BufferAttribute(spherePositions, 3)); 
+            geometry.setAttribute('spherePos', new THREE.BufferAttribute(spherePositions, 3));
+            geometry.setAttribute('cubePos', new THREE.BufferAttribute(cubePositions, 3));
+            geometry.setAttribute('randomSeed', new THREE.BufferAttribute(randomSeeds, 1));
+
+            uniforms = {
+                uTime: { value: 0.0 },
+                uAct: { value: state.act },
+                uPressure: { value: 0.0 },
+                uCeilingY: { value: 150.0 },
+                uEscapeAge: { value: 0.0 }
+            };
+
+            const material = new THREE.ShaderMaterial({
+                uniforms: uniforms,
+                vertexShader: vertexShader,
+                fragmentShader: fragmentShader,
+                transparent: true,
+                blending: THREE.AdditiveBlending,
+                depthWrite: false
+            });
+
+            particleSystem = new THREE.Points(geometry, material);
+            particleSystem.frustumCulled = false;
+            scene.add(particleSystem);
+
+            window.addEventListener('resize', () => {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            });
+
+            document.addEventListener('mousemove', (e) => {
+                if(!state.active) return;
+                state.mouseX = (e.clientX / window.innerWidth) * 2 - 1;
+                state.mouseY = -(e.clientY / window.innerHeight) * 2 + 1;
+            });
+        }
+
+        function handlePointerDown() { if(state.active) state.isPressing = true; }
+        function handlePointerUp() { if(state.active) state.isPressing = false; }
+        
+        window.addEventListener('mousedown', handlePointerDown);
+        window.addEventListener('mouseup', handlePointerUp);
+        window.addEventListener('touchstart', (e) => { handlePointerDown(); }, {passive: false});
+        window.addEventListener('touchend', handlePointerUp);
+        window.addEventListener('touchcancel', handlePointerUp);
+        window.addEventListener('blur', handlePointerUp);
+
+        let currentTextData = null;
+
+        function updateTextDynamic() {
+            let data;
+            if (state.act === 1) data = philosophy[1];
+            else if (state.act >= 2 && state.act <= 5) data = philosophy[state.act][Math.min(state.round, 1)];
+            else if (state.act === 6) data = philosophy[6];
+            else if (state.act === 7) data = philosophy[7];
+
+            if (currentTextData !== data) {
+                document.getElementById('inst-zh').innerText = data.instZH;
+                document.getElementById('inst-en').innerText = data.instEN;
+                document.getElementById('poem-zh').innerText = data.poemZH;
+                document.getElementById('poem-en').innerText = data.poemEN;
+                currentTextData = data;
+            }
+
+            const instEl = document.getElementById('inst-container');
+            const poemEl = document.getElementById('poem-container');
+            
+            if (state.act === 7) {
+                instEl.style.opacity = 0.5;
+                poemEl.style.opacity = 1;
+                poemEl.style.filter = 'blur(0px)';
+                poemEl.style.transform = 'scale(1)';
+            } else {
+                // 不按壓時顯示操作提示，按壓時提示消散，詩句浮現
+                const instOpacity = Math.max(0, 1 - state.pressure * 2.5);
+                const poemOpacity = Math.min(1, state.pressure * 1.5);
+                
+                instEl.style.opacity = instOpacity;
+                poemEl.style.opacity = poemOpacity;
+                
+                // 詩句隨壓力微微放大並清晰
+                const scale = 0.95 + (state.pressure * 0.05);
+                const blur = Math.max(0, (1 - poemOpacity) * 10);
+                poemEl.style.transform = `scale(${scale})`;
+                poemEl.style.filter = `blur(${blur}px)`;
+            }
+        }
+
+        function triggerFlash() {
+            const flashEl = document.getElementById('flash');
+            flashEl.style.transition = 'none';
+            flashEl.style.opacity = 1;
+            
+            if(act1Synth) act1Synth.triggerAttackRelease("C1", "16n");
+            
+            requestAnimationFrame(() => {
+                flashEl.style.transition = 'opacity 1.5s ease-out';
+                flashEl.style.opacity = 0;
+            });
+        }
+
+        let clock;
+
+        function animate() {
+            requestAnimationFrame(animate);
+            if (!state.active) return;
+            const delta = Math.min(clock.getDelta(), 0.05);
+            const time = clock.elapsedTime;
+            state.actAge += delta;
+            
+            if (state.act !== 7) {
+                state.pressure = Math.max(0, Math.min(1, state.pressure + delta * (state.isPressing ? 0.4 : -0.8)));
+                document.getElementById('ui-bar').style.width = state.pressure * 100 + '%';
+            }
+            
+            if (state.act === 1) {
+                state.whiteHold = state.pressure >= 0.99 ? state.whiteHold + delta : 0;
+                if (state.whiteHold >= 0.8) nextAct(2);
+            } else if (state.act >= 2 && state.act <= 5) {
+                if (state.pressure >= 0.99) {
+                    state.whiteHold += delta;
+                    if (state.whiteHold > 0.8 && (state.round === 0 || state.actAge >= 12)) {
+                        triggerFlash(); state.round++; state.pressure = 0; state.whiteHold = 0;
+                        if (state.round >= 2) nextAct(state.act + 1);
+                    }
+                } else state.whiteHold = 0;
+            } else if (state.act === 6) {
+                state.ceilingY += delta * (state.pressure * 70 - 20);
+                const shake = Math.max(0, 150 - state.ceilingY) * 0.05;
+                camera.position.x = Math.sin(time * 50) * shake;
+                camera.position.y = Math.cos(time * 40) * shake;
+                if (state.ceilingY < -80) { state.ceilingY = 150; state.pressure = 0; triggerFlash(); }
+                if (state.ceilingY > 300) nextAct(7);
+            }
+            
+            if (state.act !== 6) {
+                camera.position.x += ((state.act === 7 ? Math.sin(time * .5) * 15 : state.mouseX * 40) - camera.position.x) * .04;
+                camera.position.y += ((state.act === 7 ? Math.cos(time * .7) * 15 : state.mouseY * 40) - camera.position.y) * .04;
+            }
+            camera.lookAt(scene.position);
+            
+            cageLines.visible = state.act === 2;
+            if (cageLines.visible) {
+                cageLines.scale.setScalar(1.1 - state.pressure * .2);
+                cageLines.rotation.y = time * .1 + state.round * .7;
+                cageLines.material.opacity = .15 + state.pressure * .4;
+            }
+            
+            ceilingGrid.visible = state.act === 6;
+            ceilingGrid.position.y = state.ceilingY;
+            
+            uniforms.uTime.value = time;
+            uniforms.uAct.value = state.act;
+            uniforms.uPressure.value = state.pressure;
+            uniforms.uCeilingY.value = state.ceilingY;
+            uniforms.uEscapeAge.value = state.act === 7 ? time - state.escapeTime : 0;
+            
+            updateTextDynamic();
+            if (act1Synth) updateAudioDynamic();
+            renderer.render(scene, camera);
+        }
+        
+        function nextAct(n) {
+            if (state.act === 6 && act3Drone) act3Drone.stop();
+            state.act = n; state.actAge = 0; state.round = 0; state.whiteHold = 0; state.pressure = 0;
+            triggerFlash();
+            if (n === 6 && act3Drone) act3Drone.start();
+            if (n === 7) {
+                state.escapeTime = clock.elapsedTime;
+                document.getElementById('ui-progress').style.opacity = '0';
+                camera.position.set(0, 0, 250);
+            }
+        }
+
+        // 不再顯示「觸碰喚醒」入口：載入後直接開始
+        (function startNow() {
+            const gate = document.getElementById('init-gate');
+
+            try {
+                if (typeof THREE === 'undefined') throw new Error('Three.js 載入失敗，請檢查網路連線');
+                initWebGL();
+                clock = new THREE.Clock();
+                state.active = true;
+                document.getElementById('canvas-container').style.opacity = '1';
+                gate.classList.add('hidden');
+                
+                setTimeout(() => {
+                    document.getElementById('ui-progress').style.opacity = '1';
+                }, 1500);
+                
+                animate();
+            } catch(e) {
+                console.error("WebGL failed:", e);
+                gate.style.display = 'flex';
+                gate.innerText = "載入失敗，點擊重試";
+                gate.onclick = () => location.reload();
+                return;
+            }
+
+            // 聲音需在使用者第一次觸碰或按鍵後才能啟動（瀏覽器規定）
+            let audioStarted = false;
+            const startAudio = async () => {
+                if (audioStarted) return;
+                audioStarted = true;
+                try {
+                    await Tone.start();
+                    initAudio();
+                } catch (e) {
+                    console.error('Audio failed:', e);
+                }
+            };
+            window.addEventListener('pointerdown', startAudio);
+            window.addEventListener('keydown', startAudio);
+        })();
+
+    </script>
+</body>
+</html>
