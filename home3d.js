@@ -34,7 +34,7 @@ float hash(float n){return fract(sin(n*91.3458)*47453.5453);}
 float hexR(float a){return cos(PI/6.)/cos(mod(a,PI/3.)-PI/6.);}
 vec3 nodeC(float i){float a=(i+.5)/NN*2.*PI+uTime*SPIN-PI/2.;return vec3(cos(a)*RING,sin(a*2.+i)*18.,sin(a)*RING);}
 const vec3 CY=vec3(.45,.9,1.),WH=vec3(.92,.97,1.);
-vec3 tintOf(float i){return i<6.5?CY:i<7.5?vec3(1.,.5,.55):i<8.5?vec3(1.,.72,.42):vec3(.78,.72,1.);}
+vec3 tintOf(float i){return i<6.5?CY:i<7.5?vec3(.72,.88,1.):i<8.5?vec3(.5,.9,1.):vec3(.66,.78,1.);}
 /* 緩慢流動的擾動：讓造型邊緣鬆散、不那麼整齊 */
 vec3 fl(vec3 p,float t){return vec3(sin(p.y*1.7+t)+sin(p.z*2.3-t*.7),sin(p.z*1.9+t*1.1)+sin(p.x*1.3+t*.5),sin(p.x*2.1-t*.9)+sin(p.y*1.1+t*.3))*.5;}
 /* 各章節點的造型 */
@@ -119,6 +119,12 @@ names.forEach((nm,i)=>{const a=document.createElement('a');a.href=`experience.ht
 const enter=()=>{if(hover!==i)Sound.call('hover',i,i%5,false);hover=i};a.addEventListener('pointerenter',enter);a.addEventListener('focus',enter);a.addEventListener('pointerleave',()=>{if(hover===i)hover=-1});a.addEventListener('blur',()=>{if(hover===i)hover=-1});
 a.addEventListener('click',e=>{if(downMoved>12){e.preventDefault();return}if(e.ctrlKey||e.metaKey||e.shiftKey||e.altKey)return;Sound.unlock();Sound.call('enter',i%5);burst(i);const c=nodeAt(i,time,new THREE.Vector3());U.uRip.value[ri++%4].set(c.x,c.y,c.z,time);const r=a.getBoundingClientRect(),st=document.body.style;st.setProperty('--lx',r.left+r.width/2+'px');st.setProperty('--ly',r.top+r.height/2+'px');st.setProperty('--leave','#0a1e26')});
 holder.append(a);links.push(a)});
+/* 中心的路口：所有邊界匯在這裡，從這裡接上終端（觸語） */
+const junction=document.createElement('a');junction.href='tongue.html';junction.className='portal junction';junction.setAttribute('aria-label','觸語：連接終端');junction.innerHTML='<i></i><span>連接終端</span><small>TONGUE · TERMINAL</small>';
+junction.addEventListener('pointerenter',()=>Sound.call('hover',3,3,false));junction.addEventListener('click',e=>{if(!unlocked){e.preventDefault();return}if(downMoved>12){e.preventDefault();return}if(e.ctrlKey||e.metaKey||e.shiftKey||e.altKey)return;Sound.unlock();Sound.call('enter',2);flash=1;const r=junction.getBoundingClientRect(),st=document.body.style;st.setProperty('--lx',r.left+r.width/2+'px');st.setProperty('--ly',r.top+r.height/2+'px');st.setProperty('--leave','#0a1e26')});let doneN=0;try{doneN=new Set(JSON.parse(localStorage.getItem('aiw_done')||'[]').filter(n=>n>=1&&n<=NN)).size}catch(e){}
+const unlocked=doneN>=NN||new URLSearchParams(location.search).has('terminal');
+if(!unlocked){junction.classList.add('locked');junction.removeAttribute('href');junction.setAttribute('aria-disabled','true');junction.setAttribute('aria-label','走完十道邊界後，這裡會接上終端（目前 '+doneN+'/'+NN+'）');junction.querySelector('span').textContent='尚未連接';junction.querySelector('small').textContent=doneN+' / '+NN+' · 走完十道邊界'}
+holder.append(junction);
 
 /* ── 環繞 ── */
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v)),ptrs=new Map(),BASE=portrait?1150:1020,cam={yaw:0,pitch:portrait?.95:.5,dist:BASE};let tYaw=0,tPitch=portrait?.95:.5,zoom=1,idle=99,pinch0=0;
@@ -139,12 +145,12 @@ const s=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(c
 const eye=new THREE.Vector3(),dir=new THREE.Vector3(),nc=new THREE.Vector3();
 function gazePick(){let best=-1,bestA=.2;camera.getWorldDirection(dir);eye.setFromMatrixPosition(camera.matrixWorld);names.forEach((n,i)=>{nodeAt(i,time,tmp);world.localToWorld(tmp);const a=tmp.sub(eye).normalize().angleTo(dir);if(a<bestA){bestA=a;best=i}});return best}
 /* VR：用光點組成的手指向節點、捏合進入；沒有手勢追蹤時用控制器，或以視線對準 */
-const vrPts=()=>names.map((n,i)=>world.localToWorld(nodeAt(i,time,new THREE.Vector3())));
+const vrPts=()=>[...names.map((n,i)=>world.localToWorld(nodeAt(i,time,new THREE.Vector3()))),world.localToWorld(new THREE.Vector3(0,-10,0))];
 function vrPick(){if(!vr)return gazePick();const h=vr.hands.find(h=>h.tracked||(!h.isHand&&h.pts.length));return h?vr.pick(h,vrPts(),.2):gazePick()}
 const vr=window.AIWVR&&window.AIWVR({renderer,scene,camera,mount:b=>document.body.append(b),
  onStart(){Sound.unlock();const ws=.0026;world.scale.setScalar(ws);world.position.set(0,1.4,-1.9);U.uWS.value=ws;camera.near=.05;camera.updateProjectionMatrix();labels.forEach(l=>l.visible=true)},
  onEnd(){world.scale.setScalar(1);world.position.set(0,0,0);U.uWS.value=1;camera.near=1;camera.updateProjectionMatrix();labels.forEach(l=>l.visible=false);resize()},
- onPinchStart(h){const g=vr.pick(h,vrPts(),.2);if(g>=0)links[g].click()}});
+ onPinchStart(h){const g=vr.pick(h,vrPts(),.2);if(g>=0&&g<links.length)links[g].click();else if(g===links.length&&unlocked)junction.click()}});
 
 function resize(){renderer.setPixelRatio(Math.min(devicePixelRatio||1,mobile?1.5:2));renderer.setSize(innerWidth,innerHeight);camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();U.uPixel.value=renderer.getPixelRatio()}
 let last=0;
@@ -154,6 +160,7 @@ U.uFocal.value=Math.max(300,camera.position.length()/world.scale.x);U.uHover.val
 labels.forEach((l,i)=>{nodeAt(i,time,l.position);l.position.y-=110});
 if(!xr){const fit=(portrait?Math.max(1,Math.min(2.8,1.2/camera.aspect)):Math.max(1,1.4/camera.aspect))*(idle>5&&!reduced?1+.06*Math.sin(time*.06):1);if(idle>5&&!reduced)tYaw+=dt*.015;const k=Math.min(1,dt*2);cam.yaw+=(tYaw-cam.yaw)*k;cam.pitch+=(tPitch-cam.pitch)*k;cam.dist+=(BASE*fit*zoom-cam.dist)*k;
 const c=Math.cos(cam.pitch);camera.position.set(Math.sin(cam.yaw)*c*cam.dist,Math.sin(cam.pitch)*cam.dist,Math.cos(cam.yaw)*c*cam.dist);if(flash>.05){camera.position.x+=(R()-.5)*flash*10;camera.position.y+=(R()-.5)*flash*10}camera.lookAt(0,-75,0);camera.updateMatrixWorld();
+{tmp.set(0,-10,0).project(camera);junction.style.left=(tmp.x*.5+.5)*innerWidth+'px';junction.style.top=(-tmp.y*.5+.5)*innerHeight+'px';junction.style.visibility=tmp.z<1?'visible':'hidden'}
 links.forEach((a,i)=>{nodeAt(i,time,tmp).project(camera);a.style.left=(tmp.x*.5+.5)*innerWidth+'px';a.style.top=(-tmp.y*.5+.5)*innerHeight+'px';a.style.visibility=tmp.z<1?'visible':'hidden'})}
 sky.position.setFromMatrixPosition(camera.matrixWorld);
 Sound.update({pressure:0,charge:0,px:innerWidth/2,py:innerHeight/2,w:innerWidth,h:innerHeight,lift:hover>=0?1:0});

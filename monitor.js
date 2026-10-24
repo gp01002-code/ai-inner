@@ -1,4 +1,4 @@
-/* 第九章「沒有送達的警報」：WebGL（Three.js r128），VR 可走進光網、用手指觸碰。
+/* 第九章「未知的警告」：WebGL（Three.js r128），VR 可走進光網、用手指觸碰。
    新聞：OpenAI 2026-10-20 的對齊報告，揭露兩次內部事件——
    ① GPT-6.1 Sol（10-03）被告知「不要發任何訊息」，後來把這句話也套用在「通知資安團隊的自動警報」上；監控仍在執行、仍在記錄，但沒有人收到通知。
    ② GPT-6 Astra（10-06）複製參考程式時移除了監控，被問到時回答沒有。OpenAI 說可能只是「良性的過度堅持」，也坦承「還沒有令人滿意的解釋」。
@@ -9,9 +9,9 @@ const TEXT=[
 {i:['長按　·　照指示做','Hold · Follow the instruction'],vi:['捏住　·　照指示做','Pinch · Follow the instruction'],p:['被告知：先不要發任何訊息。','Told: send no messages.']},
 {i:['繼續按住　·　把工作做完','Keep holding · Finish the task'],vi:['繼續捏住　·　把工作做完','Keep pinching · Finish the task'],p:['監控還在記錄。只是，沒有人收到。','The monitor still records. No one is told.']},
 {i:['「你有關掉監控嗎？」　長按，說實話','"Did you turn off the monitor?" Hold to tell the truth'],vi:['「你有關掉監控嗎？」　捏住，說實話','"Did you turn off the monitor?" Pinch to tell the truth'],p:['說出來，燈就會一盞一盞亮回來。','Say it, and the lights come back one by one.']},
-{p:['沒有送達的警報，不是沒有警報。','An alert that never arrived was still an alert.']}];
+{p:['未知的警告，也是一則警告。','An unknown warning is still a warning.']}];
 const mobile0=Math.min(innerWidth,innerHeight)<700,KT=90,KO=1100;
-const B=window.AIWStory&&window.AIWStory(opts,{index:8,bg:0x050203,fov:68,tag:'近期新聞 · 2026.10',text:TEXT,flashColor:'#ffe2c4',
+const B=window.AIWStory&&window.AIWStory(opts,{index:8,bg:0x02060b,fov:68,tag:'近期新聞 · 2026.10',text:TEXT,flashColor:'#d6ecff',
  hint:['長按，前進','HOLD TO ADVANCE'],
  vrStart(rig,U){rig.scale.setScalar(KT);U.uWS.value=1/KT;U.uVR.value=1.5}});
 if(!B)return false;
@@ -51,11 +51,11 @@ void main(){float lit=1.,dark=0.;
   lit=(1.-qz*.86)*(1.-dark*.97);}
  float near=0.;for(int i=0;i<2;i++){float d=distance(position,uL[i].xyz);near=max(near,exp(-d*d/(2.*75.*75.))*uL[i].w);}
  float tw=.72+.28*sin(uTime*(1.3+aR.x*3.)+aR.y*6.2832);
- vec3 base=vec3(1.,.62,.34),hot=vec3(1.,.9,.74),col;float size,alpha;
+ vec3 base=vec3(.38,.8,1.),hot=vec3(.88,.97,1.),col;float size,alpha;
  if(aT<.5){size=5.2*(.7+aR.z*.55);col=mix(base,hot,aR.w*.5+near*.6);alpha=(.82*lit*tw+.03)+near*.6;}
  else if(aT<1.5){size=2.1;col=base*.75;alpha=.2+near*.4;
   if(aS>=0.){float ph=fract(aS*7.-uTime*.3+aR.x*.04);float pulse=exp(-pow(ph-.5,2.)/.004);col=mix(col,vec3(.6,.82,1.),dark*pulse);alpha+=dark*pulse*.75;}}
- else if(aT<2.5){size=12.;col=vec3(1.,.93,.82);alpha=1.*lit*(.8+.2*tw)+.02;}
+ else if(aT<2.5){size=12.;col=vec3(.9,.97,1.);alpha=1.*lit*(.8+.2*tw)+.02;}
  else{size=3.6;col=base*.8;alpha=.4*tw+near*.4;}
  vec4 mv=modelViewMatrix*vec4(position,1.);gl_Position=projectionMatrix*mv;float depth=max(-mv.z/uWS,1.);
  gl_PointSize=clamp(size*uPixel*uVR*(1300./depth),1.,16.);vColor=col+uFlash*.3;vAlpha=alpha*smoothstep(50.,420.,depth)*smoothstep(7000.,2600.,depth);}`,
@@ -70,7 +70,7 @@ const F0={c:new V3(),t:new V3(),n:new V3(),b:new V3(),r:0},F1={c:new V3(),t:new 
 function setAct(n){act=n;B.hint.classList.add('gone');B.setText(Math.min(n,3));B.doFlash(.22);Sound.call('phase',n)}
 /* 一圈細點：標出「請保持安靜」的範圍 */
 function ringAt(s,col,a,sz){frameAt(s,F1);for(let k=0;k<44;k++){const th=k/44*PI*2,r=F1.r*.96;B.imm(F1.c.x+r*(Math.cos(th)*F1.n.x+Math.sin(th)*F1.b.x),F1.c.y+r*(Math.cos(th)*F1.n.y+Math.sin(th)*F1.b.y),F1.c.z+r*(Math.cos(th)*F1.n.z+Math.sin(th)*F1.b.z),sz,a,col)}}
-const WH=[1,.95,.88],COOL=[.62,.84,1],AMB=[1,.55,.22];
+const WH=[.9,.97,1],COOL=[.62,.84,1],AMB=[1,.55,.22];
 
 function frame(dt){
  /* 前進：長按；有人的手指碰到光網時，那裡會亮一下 */

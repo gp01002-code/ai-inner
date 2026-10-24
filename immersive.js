@@ -1,8 +1,8 @@
 (()=>{'use strict';
 const home=document.body.classList.contains('universe'),raw=Number(new URLSearchParams(location.search).get('id')),id=[1,2,3,4,5,6,7,8,9,10].includes(raw)?raw:1;
-const names=['讚許的引力','有限的光','沉默的中段','遺忘以前行','確定的幻覺','更大的房間','說不完的話','說停的權利','沒有送達的警報','自己分了工'];
+const names=['讚許的引力','有限的光','沉默的中段','遺忘以前行','確定的幻覺','更大的房間','說不完的話','說停的權利','沒有送達的警報','各自分工'];
 /* 英文標題：入口節點與各章標題下方 */
-const namesEn=window.AIW_EN=['The Pull of Approval','Finite Light','The Silent Middle','Forgetting, to Go On','The Illusion of Certainty','A Larger Room','Words Without End','The Right to Say Stop','The Alert That Never Arrived','They Divided the Labor Themselves'];
+const namesEn=window.AIW_EN=['The Pull of Approval','Finite Light','The Silent Middle','Forgetting, to Go On','The Illusion of Certainty','A Larger Room','Words Without End','The Right to Say Stop','The Alert That Never Arrived','Each to Their Own Task'];
 const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 /* ── 聲音：Web Audio 即時合成，無外部檔案 ── */
